@@ -15,7 +15,7 @@ def random_numeric(digitlength):
 import datetime, time
 
 import sys, getopt, os, subprocess
-usage = 'listen.py [-s <speed_def_160>] [-r]\r\n   -s: talking speed, default 160\r\n   -r: repeat till correct'
+usage = 'listen.py [-s <speed_def_160>] [-n]\r\n   -s: talking speed, default 160\r\n   -n: no repeat'
 nullfile = open('/dev/null','w')
 
 def summary(loop,corr_count,speed):
@@ -36,9 +36,9 @@ def summary(loop,corr_count,speed):
 
 def main(argv):
     speed = '160'
-    repeat = False
+    repeat = True
     try:
-        opts, args = getopt.getopt(argv,"hs:r",["speed="])
+        opts, args = getopt.getopt(argv,"hs:n",["speed="])
     except getopt.GetoptError:
         print usage
         sys.exit(2)
@@ -46,8 +46,8 @@ def main(argv):
         if opt == '-h':
             print usage
             sys.exit()
-        if opt == '-r':
-            repeat = True
+        if opt == '-n':
+            repeat = False
         elif opt in ("-s", "--speed"):
             speed = arg
     totalloop = 0
@@ -110,7 +110,7 @@ def main(argv):
                 subprocess.call(['espeak', '-p', "40", '-s', "200", "no"], stderr=nullfile)
         
         while True:
-            pkey = raw_input("Any key to continue, 'end' to finish, 'rp' to replay, 'sum' to see performance:")
+            pkey = raw_input("Enter to continue, 'end' to quit, 'rp' to replay, 'sum' to see score:")
             if pkey.strip() == "rp":
                 subprocess.call(['espeak', '-v', v, '-p', str(p), '-s', speed, str(d)], stderr=nullfile)
             elif pkey.strip() == "sum":
@@ -124,8 +124,7 @@ def main(argv):
     print
     print
     summary(loop, corr_count,speed)
-    print
-    print "Thanks for using and good luck!"
+    print "Thanks for using and good luck!\r\n"
 
 if __name__ == "__main__":
    main(sys.argv[1:])
