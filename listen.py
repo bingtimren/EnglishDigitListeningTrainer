@@ -15,7 +15,7 @@ def random_numeric(digitlength):
 import datetime, time
 
 import sys, getopt, os, subprocess
-usage = 'listen.py -s <speed_def_160>'
+usage = 'listen.py [-s <speed_def_160>] [-r]\r\n   -s: talking speed, default 160\r\n   -r: repeat till correct'
 nullfile = open('/dev/null','w')
 
 def summary(loop,corr_count,speed):
@@ -24,19 +24,21 @@ def summary(loop,corr_count,speed):
     print "Talking speed: "+speed
     print "Digit | Loop | Accuracy"
     print "============================"
-    for i in range(1,9):
+    for i in range(1,11):
         if loop[i] > 0:
             print ("%5d" % i)+" | "+("%4d" % loop[i])+" | "+ \
                 ("%6.2f"% (round(corr_count[i]*1.0/loop[i],3)*100))
         else:
             print ("%5d" % i)+" |    0 |    N/A"
+    print "============================"
+    print
     
 
 def main(argv):
     speed = '160'
-    os.system('clear')
+    repeat = False
     try:
-        opts, args = getopt.getopt(argv,"hs:",["speed="])
+        opts, args = getopt.getopt(argv,"hs:r",["speed="])
     except getopt.GetoptError:
         print usage
         sys.exit(2)
@@ -44,19 +46,23 @@ def main(argv):
         if opt == '-h':
             print usage
             sys.exit()
+        if opt == '-r':
+            repeat = True
         elif opt in ("-s", "--speed"):
             speed = arg
     totalloop = 0
-    loop = [0] * 10
-    sumtime = [0] * 10
-    maxtime = [0] * 10
-    mintime = [20000] * 10
-    corr_count = [0] * 10
+    loop = [0] * 11
+    sumtime = [0] * 11
+    maxtime = [0] * 11
+    mintime = [20000] * 11
+    corr_count = [0] * 11
+    os.system('clear')
+    print "Welcome to English Digit Listening training...\r\n"
     while True:
         # generate number, read out, and wait for input
         totalloop = totalloop + 1
         time.sleep(0.5)
-        digitlength = rnd.randint(1,9)
+        digitlength = rnd.randint(1,10)
         d = random_numeric(digitlength)
         v = voices[rnd.randint(0,len(voices)-1)]
         p = rnd.randint(5,95)
@@ -93,16 +99,27 @@ def main(argv):
             subprocess.call(['espeak', '-p', "40", '-s', "100", "oh,no"], stderr=nullfile)
         print "Correct Rate: "+str(round(corr_count[digitlength]*1.0/loop[digitlength],3)*100)+"%"
         pkey = ""
+        while repeat & (answer.strip() != str(d)):
+            print "Listen again and inpur your answer: ",
+            sys.stdout.flush()
+            subprocess.call(['espeak', '-v', v, '-p', str(p), '-s', speed, str(d)], stderr=nullfile)
+            answer = raw_input()
+            if answer.strip() == str(d):
+                subprocess.call(['espeak', '-p', "60", '-s', "160","correct"], stderr=nullfile)
+            else:
+                subprocess.call(['espeak', '-p', "40", '-s', "200", "no"], stderr=nullfile)
+        
         while True:
             pkey = raw_input("Any key to continue, 'end' to finish, 'rp' to replay, 'sum' to see performance:")
             if pkey.strip() == "rp":
                 subprocess.call(['espeak', '-v', v, '-p', str(p), '-s', speed, str(d)], stderr=nullfile)
+            elif pkey.strip() == "sum":
+                summary(loop, corr_count,speed)
             else:
                 break
         if pkey.strip() == "end":
             break
-        if pkey.strip() == "sum":
-            summary(loop, corr_count,speed)
+
     print
     print
     print
