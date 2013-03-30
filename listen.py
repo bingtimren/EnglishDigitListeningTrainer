@@ -32,7 +32,17 @@ def summary(loop,corr_count,speed):
             print ("%5d" % i)+" |    0 |    N/A"
     print "============================"
     print
-    
+
+# double triple
+def dbtp(input):
+    x = input.split(' ')
+    for i in range(len(x)):
+        if i < (len(x)-2) and x[i] == x[i+1] and x[i] == x[i+2]:
+            x[i] = 'triple'
+            x[i+2] = ''
+        elif i < (len(x)-1) and x[i] == x[i+1]:
+            x[i] = 'double'
+    return ' '.join(x)
 
 def main(argv):
     speed = '160'
@@ -64,13 +74,21 @@ def main(argv):
         time.sleep(0.5)
         digitlength = rnd.randint(1,10)
         d = random_numeric(digitlength)
+        if random.random() >= 0.5:
+            readout = str(d)
+        else:
+            readout = reduce(lambda x,y:x+" "+y, str(d))
+            if random.random() >= 0.5:
+                readout = readout.replace('0','o')
+            if random.random() >= 0.5:
+                readout = dbtp(readout)
         v = voices[rnd.randint(0,len(voices)-1)]
         p = rnd.randint(5,95)
         print
         print
         print "Inpur what you've heard: ",
         sys.stdout.flush()
-        subprocess.call(['espeak', '-v', v, '-p', str(p), '-s', speed, str(d)], stderr=nullfile)
+        subprocess.call(['espeak', '-v', v, '-p', str(p), '-s', speed, readout], stderr=nullfile)
         tstart = datetime.datetime.now()
         answer = raw_input()
         tdur = (datetime.datetime.now() - tstart).total_seconds()
@@ -84,7 +102,7 @@ def main(argv):
             corr_count[digitlength] = corr_count[digitlength] + 1
         print "Total Loop:   "+str(totalloop)
         print "N of Digits:  "+str(digitlength)
-        print "You heard:    "+str(d)
+        print "You heard:    "+readout
         print "Your answer:  "+answer        
         print "Loop(N):      "+str(loop[digitlength])
         print "Talk Speed:   "+speed
@@ -96,13 +114,13 @@ def main(argv):
             subprocess.call(['espeak', '-p', "60", '-s', "160","correct"], stderr=nullfile)
         else:
             print "Correct:   NO  :< NO  :< NO  :<"
-            subprocess.call(['espeak', '-p', "40", '-s', "100", "oh,no"], stderr=nullfile)
+            subprocess.call(['espeak', '-p', "40", '-s', "130", "oh,no"], stderr=nullfile)
         print "Correct Rate: "+str(round(corr_count[digitlength]*1.0/loop[digitlength],3)*100)+"%"
         pkey = ""
         while repeat & (answer.strip() != str(d)):
             print "Listen again and inpur your answer: ",
             sys.stdout.flush()
-            subprocess.call(['espeak', '-v', v, '-p', str(p), '-s', speed, str(d)], stderr=nullfile)
+            subprocess.call(['espeak', '-v', v, '-p', str(p), '-s', speed, readout], stderr=nullfile)
             answer = raw_input()
             if answer.strip() == str(d):
                 subprocess.call(['espeak', '-p', "60", '-s', "160","correct"], stderr=nullfile)
@@ -112,7 +130,7 @@ def main(argv):
         while True:
             pkey = raw_input("Enter to continue, 'end' to quit, 'rp' to replay, 'sum' to see score:")
             if pkey.strip() == "rp":
-                subprocess.call(['espeak', '-v', v, '-p', str(p), '-s', speed, str(d)], stderr=nullfile)
+                subprocess.call(['espeak', '-v', v, '-p', str(p), '-s', speed, readout], stderr=nullfile)
             elif pkey.strip() == "sum":
                 summary(loop, corr_count,speed)
             else:
