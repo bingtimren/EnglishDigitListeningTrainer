@@ -10,7 +10,7 @@ voices = ['default', 'en-scottish', 'english', 'lancashire', 'english_rp',
 rnd = random.Random()
 
 def random_numeric(digitlength):
-    return rnd.randint(0, 10 ** digitlength)
+    return rnd.randint(0, 10 ** digitlength - 1)
 
 import datetime, time
 
@@ -61,23 +61,32 @@ def main(argv):
         elif opt in ("-s", "--speed"):
             speed = arg
     totalloop = 0
-    loop = [0] * 11
-    sumtime = [0] * 11
-    maxtime = [0] * 11
-    mintime = [20000] * 11
-    corr_count = [0] * 11
+    loop = [0] * 21
+    sumtime = [0] * 21
+    maxtime = [0] * 21
+    mintime = [20000] * 21
+    corr_count = [0] * 21
     os.system('clear')
     print "Welcome to English Digit Listening training...\r\n"
     while True:
         # generate number, read out, and wait for input
         totalloop = totalloop + 1
         time.sleep(0.5)
-        digitlength = rnd.randint(1,10)
-        d = random_numeric(digitlength)
         if random.random() >= 0.5:
+            digitlength = rnd.randint(1,10)
+            d = random_numeric(digitlength)
             readout = str(d)
+            answerd = readout
         else:
-            readout = reduce(lambda x,y:x+" "+y, str(d))
+            readout = ""
+            answerd = ""
+            digitlength = 16
+            for i in range(4):
+                for j in range(4):
+                    dig = random_numeric(1)
+                    answerd = answerd + str(dig)
+                    readout = readout + " " + str(dig)
+                readout = readout + ","
             if random.random() >= 0.5:
                 readout = readout.replace('0','o')
             if random.random() >= 0.5:
@@ -97,7 +106,7 @@ def main(argv):
         sumtime[digitlength] = sumtime[digitlength] + tdur
         maxtime[digitlength] = max(maxtime[digitlength], tdur)
         mintime[digitlength] = min(mintime[digitlength], tdur)
-        correct = answer.strip() == str(d)
+        correct = answer.strip() == answerd
         if correct:
             corr_count[digitlength] = corr_count[digitlength] + 1
         print "Total Loop:   "+str(totalloop)
@@ -117,12 +126,12 @@ def main(argv):
             subprocess.call(['espeak', '-p', "40", '-s', "130", "oh,no"], stderr=nullfile)
         print "Correct Rate: "+str(round(corr_count[digitlength]*1.0/loop[digitlength],3)*100)+"%"
         pkey = ""
-        while repeat & (answer.strip() != str(d)):
+        while repeat & (answer.strip() != answerd):
             print "Listen again and inpur your answer: ",
             sys.stdout.flush()
             subprocess.call(['espeak', '-v', v, '-p', str(p), '-s', speed, readout], stderr=nullfile)
             answer = raw_input()
-            if answer.strip() == str(d):
+            if answer.strip() == answerd:
                 subprocess.call(['espeak', '-p', "60", '-s', "160","correct"], stderr=nullfile)
             else:
                 subprocess.call(['espeak', '-p', "40", '-s', "200", "no"], stderr=nullfile)
