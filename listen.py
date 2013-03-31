@@ -129,6 +129,9 @@ def main(argv):
         while repeat & (answer.strip() != answerd):
             print "Listen again and inpur your answer: ",
             sys.stdout.flush()
+            time.sleep(0.5)
+            subprocess.call(['espeak', '-p', "60", '-s', "160","repeat"], stderr=nullfile)
+            time.sleep(0.5)
             subprocess.call(['espeak', '-v', v, '-p', str(p), '-s', speed, readout], stderr=nullfile)
             answer = raw_input()
             if answer.strip() == answerd:
